@@ -1,0 +1,738 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f4f1ea">
+<title>量一量 · 认知与成绩的双向回路</title>
+<style>
+  :root{--bg:#f4f1ea;--ink:#2b3138;--muted:#6b7480;--red:#a8433a;--kraft:#b98a5a;
+        --line:#d8cfc0;--white:#fffdf8;--green:#4f7a52;--blue:#3f6a8a}
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:Arial,"PingFang SC","Microsoft YaHei",sans-serif}
+  .wrap{max-width:720px;margin:0 auto;padding:26px 20px 70px}
+  .topbar{display:flex;align-items:center;gap:12px;min-height:30px;margin-bottom:10px}
+  .back{border:none;background:none;color:var(--muted);font-size:13px;cursor:pointer;padding:4px 0}
+  .back[hidden]{display:none}
+  .kicker{font-size:11px;letter-spacing:.2em;color:var(--red);font-weight:700}
+  h1{font-family:Georgia,serif;font-size:40px;line-height:1.15;margin:10px 0 8px}
+  h2{font-family:Georgia,serif;font-size:26px;margin:0 0 6px}
+  .lede{color:var(--muted);font-size:14px;line-height:1.65}
+  .cards{display:grid;gap:14px;margin-top:22px}
+  .card{display:block;width:100%;text-align:left;background:var(--white);border:1px solid var(--line);
+        padding:22px;cursor:pointer;color:inherit;font:inherit}
+  .card:hover{border-color:var(--kraft)}
+  .card .t{font-family:Georgia,serif;font-size:24px;margin-bottom:6px}
+  .card .d{color:var(--muted);font-size:13px;line-height:1.6}
+  .card .badge{float:right;font-size:12px;color:var(--green);border:1px solid #c6d6c6;padding:2px 8px}
+  .big-card{padding:34px 26px}
+  .big-card .t{font-size:30px}
+  .foot{margin-top:26px;padding-top:14px;border-top:1px solid var(--line);color:#a99f90;font-size:11px;line-height:1.7}
+
+  .stage{background:var(--white);border:1px solid var(--line);padding:18px;margin-top:18px;min-height:300px;
+         display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative}
+  .stage.flash-ok{box-shadow:inset 0 0 0 3px #b9d3b6}
+  .stage.flash-bad{box-shadow:inset 0 0 0 3px #e0bcb6}
+  .digits{font-family:Georgia,serif;font-size:76px;letter-spacing:.12em}
+  .word{font-family:Georgia,serif;font-size:84px;font-weight:700;line-height:1}
+  .prompt{font-size:15px;color:var(--muted);margin-bottom:12px;text-align:center}
+  .hint{min-height:22px;color:var(--muted);font-size:13px}
+
+  .bar-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted);margin-top:12px}
+  .track{height:5px;background:#eae4d8;border-radius:99px;overflow:hidden;margin-top:8px}
+  .track span{display:block;height:100%;background:var(--kraft);width:0;transition:width .2s}
+
+  .row{display:flex;gap:10px;width:100%;margin-top:14px}
+  input[type=text],input[type=number]{flex:1;padding:12px;border:1px solid var(--line);background:#fff;font:inherit;font-size:20px;
+        text-align:center;letter-spacing:.15em;min-width:0}
+  input:focus{outline:none;border-color:var(--red)}
+  button.btn{font:inherit;font-size:15px;padding:12px 18px;border:1px solid var(--ink);background:transparent;color:var(--ink);cursor:pointer}
+  button.btn.primary{background:var(--ink);color:var(--bg)}
+  button.btn.ghost{border-color:var(--line);color:var(--muted);font-size:12px;padding:8px 12px}
+  button.btn:disabled{opacity:.35;cursor:default}
+  .center{text-align:center}
+
+  .opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;margin-top:14px}
+  .opt{padding:14px;border:1px solid var(--line);background:var(--white);cursor:pointer;font:inherit;font-size:15px;
+       display:flex;align-items:center;justify-content:center;gap:8px}
+  .opt:hover{border-color:var(--kraft)}
+  .opt kbd{font-family:Arial;font-size:11px;border:1px solid var(--line);padding:1px 5px;color:var(--muted)}
+
+  .result{margin-top:18px}
+  .result .big{font-family:Georgia,serif;font-size:64px;line-height:1}
+  .result .unit{font-size:20px;color:var(--muted)}
+  .band{display:inline-block;margin-top:8px;font-size:13px;color:var(--white);background:var(--green);padding:4px 12px}
+  .formula{background:var(--white);border:1px solid var(--line);padding:14px;margin-top:14px;font-size:12px;color:var(--muted);line-height:1.8}
+  .formula code{font-size:12px;color:var(--ink)}
+
+  .simwrap{background:var(--white);border:1px solid var(--line);padding:16px;margin-top:16px}
+  .legend{display:flex;gap:18px;font-size:12px;color:var(--muted);margin-top:6px}
+  .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:middle}
+  .sliders{margin-top:14px}
+  .sl{margin:12px 0}
+  .sl .top{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px}
+  .sl input{width:100%;accent-color:var(--kraft)}
+  .simbtns{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+  .simnote{margin-top:12px;font-size:12px;color:var(--muted);line-height:1.7}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--bg);
+         font-size:13px;padding:10px 16px;opacity:0;transition:opacity .25s;pointer-events:none}
+  .toast.on{opacity:1}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <button class="back" id="back" hidden>‹ 返回</button>
+    <span class="kicker" id="kicker">MEASURE THE LOOP</span>
+  </div>
+
+  <!-- HOME -->
+  <section id="v-home">
+    <h1>量一量<br>认知与成绩的双向回路</h1>
+    <div class="lede">三个课堂小实验，加一个可以推演五年的小模型。都是体验，不是诊断。</div>
+    <div class="cards">
+      <button class="card big-card" data-go="hub">
+        <div class="t">① 测一测</div>
+        <div class="d">数字倒背 · 念颜色 · 矩阵推理<br>每项给 0–100 分，当场出分。</div>
+      </button>
+      <button class="card big-card" data-go="sim">
+        <div class="t">② 双向</div>
+        <div class="d">拖动两个滑块，看能力与成绩怎样互相推着走；<br>也可以试试「只训练能力」和「只改教学」。</div>
+      </button>
+    </div>
+    <div class="foot">课堂体验用，非标准化测验，不构成任何诊断或评估结论。</div>
+  </section>
+
+  <!-- HUB -->
+  <section id="v-hub" hidden>
+    <h1>三个小实验</h1>
+    <div class="lede">按顺序做完大约三分钟。每项结束都会给出分数和算法。</div>
+    <div class="cards">
+      <button class="card" data-go="digit">
+        <div class="t">数字倒背 <span class="badge" id="b-digit" hidden></span></div>
+        <div class="d">屏幕逐位闪数字，倒着敲回来。测工作记忆。</div>
+      </button>
+      <button class="card" data-go="stroop">
+        <div class="t">念颜色 <span class="badge" id="b-stroop" hidden></span></div>
+        <div class="d">字义和墨色不一致，按键说出墨色。测抑制。</div>
+      </button>
+      <button class="card" data-go="matrix">
+        <div class="t">矩阵推理 <span class="badge" id="b-matrix" hidden></span></div>
+        <div class="d">五道图形规律题，由易到难。测流体推理。</div>
+      </button>
+    </div>
+    <div id="summary" class="foot"></div>
+    <div class="foot">范式出处：韦氏智力量表（数字倒背）· Stroop (1935) · Raven (1938)。分数为课堂指数，非 IQ。</div>
+  </section>
+
+  <!-- DIGIT -->
+  <section id="v-digit" hidden>
+    <h2>数字倒背</h2>
+    <div class="lede">数字会一位一位出现。看完后，把整串数字<strong>倒过来</strong>输入。每级两题，对一题就升级。</div>
+    <div class="stage" id="digitStage">
+      <div class="digits" id="digitShow">准备好了吗</div>
+      <div class="hint" id="digitHint"></div>
+      <div class="row" id="digitInputRow" hidden>
+        <input id="digitInput" type="text" inputmode="numeric" autocomplete="off" placeholder="倒着输入">
+        <button class="btn primary" id="digitSubmit">提交</button>
+      </div>
+      <div class="row" id="digitStartRow">
+        <button class="btn primary" id="digitStart">开始</button>
+      </div>
+    </div>
+    <div class="bar-row"><span id="digitProgress">第 3 位 · 第 1 题</span><span id="digitTimer">20.0s</span></div>
+    <div class="track"><span id="digitTrack"></span></div>
+    <div class="result" id="digitResult" hidden></div>
+  </section>
+
+  <!-- STROOP -->
+  <section id="v-stroop" hidden>
+    <h2>念颜色</h2>
+    <div class="lede">不要念字，按键说出<strong>字的颜色</strong>。键盘 1–4 或 R/G/B/Y，也可以直接点按钮。</div>
+    <div class="stage" id="stroopStage">
+      <div class="word" id="stroopWord">红</div>
+      <div class="hint" id="stroopHint">准备好就开始</div>
+      <div class="opts" id="stroopOpts" hidden>
+        <button class="opt" data-color="red">红色 <kbd>1 R</kbd></button>
+        <button class="opt" data-color="green">绿色 <kbd>2 G</kbd></button>
+        <button class="opt" data-color="blue">蓝色 <kbd>3 B</kbd></button>
+        <button class="opt" data-color="yellow">黄色 <kbd>4 Y</kbd></button>
+      </div>
+      <div class="row" id="stroopStartRow"><button class="btn primary" id="stroopStart">开始</button></div>
+    </div>
+    <div class="bar-row"><span id="stroopProgress">0 / 24</span><span id="stroopTimer">60.0s</span></div>
+    <div class="track"><span id="stroopTrack"></span></div>
+    <div class="result" id="stroopResult" hidden></div>
+  </section>
+
+  <!-- MATRIX -->
+  <section id="v-matrix" hidden>
+    <h2>矩阵推理</h2>
+    <div class="lede">看三个格子的规律，选出第四格。键盘 1–4 也可以选。</div>
+    <div class="stage" id="matrixStage">
+      <div id="matrixPrompt" class="center"></div>
+      <div class="opts" id="matrixOpts" hidden></div>
+      <div class="row" id="matrixStartRow"><button class="btn primary" id="matrixStart">开始</button></div>
+      <div class="hint" id="matrixHint"></div>
+    </div>
+    <div class="bar-row"><span id="matrixProgress">0 / 5</span><span id="matrixTimer">90.0s</span></div>
+    <div class="track"><span id="matrixTrack"></span></div>
+    <div class="result" id="matrixResult" hidden></div>
+  </section>
+
+  <!-- SIM -->
+  <section id="v-sim" hidden>
+    <h2>双向回路</h2>
+    <div class="lede">两条线：能力与成绩。每次推进一年，它们互相拉动。把「学习长能力」拉到 0，就只剩单向。</div>
+    <div class="simwrap">
+      <svg id="chart" viewBox="0 0 620 280" style="width:100%;height:auto"></svg>
+      <div class="legend">
+        <span><i class="dot" style="background:#4f7a52"></i>能力</span>
+        <span><i class="dot" style="background:#b98a5a"></i>成绩</span>
+        <span id="yearLabel" style="margin-left:auto">第 0 年</span>
+      </div>
+      <div class="sliders">
+        <div class="sl">
+          <div class="top"><span>能力 → 成绩</span><b id="b1v">0.6</b></div>
+          <input id="b1" type="range" min="0" max="1" step="0.05" value="0.6">
+        </div>
+        <div class="sl">
+          <div class="top"><span>成绩 → 能力</span><b id="b2v">0.35</b></div>
+          <input id="b2" type="range" min="0" max="1" step="0.05" value="0.35">
+        </div>
+      </div>
+      <div class="simbtns">
+        <button class="btn primary" id="step">下一年</button>
+        <button class="btn" id="train">训练能力（一年）</button>
+        <button class="btn" id="teach">改教学（一年）</button>
+        <button class="btn ghost" id="reset">重置</button>
+      </div>
+      <div class="simnote" id="simnote">点「下一年」开始推演。训练能力只留下一小截迁移，第二年还会掉一半；改教学直接抬成绩，能力随后慢慢跟上。</div>
+    </div>
+  </section>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  'use strict';
+  var $ = function(id){ return document.getElementById(id); };
+  var KEY = 'psych.loop.v1';
+  var results = { digit: null, stroop: null, matrix: null };
+
+  /* ---------- navigation ---------- */
+  var views = ['home','hub','digit','stroop','matrix','sim'];
+  var current = 'home';
+  function go(name){
+    stopAll();
+    views.forEach(function(v){
+      var el = $('v-' + v);
+      if(el) el.hidden = (v !== name);
+    });
+    current = name;
+    $('back').hidden = (name === 'home');
+    window.scrollTo(0, 0);
+    if(name === 'digit') resetDigit(true);
+    if(name === 'stroop') resetStroop(true);
+    if(name === 'matrix') resetMatrix(true);
+    if(name === 'sim') drawChart();
+    if(name === 'hub') renderHub();
+  }
+  $('back').addEventListener('click', function(){
+    if(current === 'digit' || current === 'stroop' || current === 'matrix' || current === 'sim') go('hub');
+    else go('home');
+  });
+  document.querySelectorAll('[data-go]').forEach(function(b){
+    b.addEventListener('click', function(){ go(b.getAttribute('data-go')); });
+  });
+
+  function toast(msg){
+    var t = $('toast'); t.textContent = msg; t.classList.add('on');
+    clearTimeout(t._h); t._h = setTimeout(function(){ t.classList.remove('on'); }, 1800);
+  }
+
+  function stopAll(){
+    if(window._digitT) clearInterval(window._digitT);
+    if(window._stroopT) clearInterval(window._stroopT);
+    if(window._matrixT) clearInterval(window._matrixT);
+    window._digitT = window._stroopT = window._matrixT = null;
+  }
+
+  /* ---------- persistence ---------- */
+  function loadResults(){
+    try{
+      var raw = localStorage.getItem(KEY);
+      if(raw){ var s = JSON.parse(raw); if(s && typeof s === 'object'){ results = s; } }
+    }catch(e){}
+  }
+  function saveResults(){
+    try{ localStorage.setItem(KEY, JSON.stringify(results)); }catch(e){}
+  }
+  function renderHub(){
+    ['digit','stroop','matrix'].forEach(function(k){
+      var b = $('b-' + k), r = results[k];
+      if(r && typeof r.score === 'number'){
+        b.textContent = r.score + ' 分'; b.hidden = false;
+      } else { b.hidden = true; }
+    });
+    var done = ['digit','stroop','matrix'].filter(function(k){ return results[k]; });
+    var s = $('summary');
+    if(done.length === 3){
+      var avg = Math.round((results.digit.score + results.stroop.score + results.matrix.score) / 3);
+      s.innerHTML = '三项平均：<b style="font-size:20px;font-family:Georgia,serif">' + avg + '</b> 分 · 三项都做完了，可以对比一下。';
+    } else {
+      s.textContent = done.length ? ('已完成 ' + done.length + ' / 3 项。') : '还没有成绩。';
+    }
+  }
+
+  /* ---------- shared: score band ---------- */
+  function band(score){
+    if(score >= 80) return '明显偏高';
+    if(score >= 60) return '偏高';
+    if(score >= 40) return '中等';
+    if(score >= 20) return '偏低';
+    return '明显偏低';
+  }
+  function resultCard(el, title, score, detail, formula){
+    el.hidden = false;
+    el.innerHTML =
+      '<div class="big">' + score + '<span class="unit"> / 100</span></div>' +
+      '<div class="band">' + band(score) + '</div>' +
+      '<div class="lede" style="margin-top:12px">' + detail + '</div>' +
+      '<div class="formula"><b>' + title + ' 怎么算</b><br><code>' + formula + '</code>' +
+      '<br><br>课堂指数，不是 IQ，也不是任何诊断。范式出处见首页页脚。</div>' +
+      '<div class="row"><button class="btn primary" data-retry="' + el.id + '">再来一次</button>' +
+      '<button class="btn" data-go="hub">回到三个实验</button></div>';
+    el.querySelectorAll('[data-retry]').forEach(function(b){
+      b.addEventListener('click', function(){
+        if(el.id === 'digitResult') resetDigit(true);
+        if(el.id === 'stroopResult') resetStroop(true);
+        if(el.id === 'matrixResult') resetMatrix(true);
+      });
+    });
+    el.querySelectorAll('[data-go]').forEach(function(b){
+      b.addEventListener('click', function(){ go(b.getAttribute('data-go')); });
+    });
+  }
+
+  /* ================= DIGIT SPAN ================= */
+  var digit = { level: 3, trial: 0, correctAtLevel: 0, maxSpan: 0, seq: [], phase: 'idle', deadline: 0 };
+  function resetDigit(fresh){
+    stopAll();
+    digit = { level: 3, trial: 0, correctAtLevel: 0, maxSpan: 0, seq: [], phase: 'idle', deadline: 0 };
+    $('digitResult').hidden = true;
+    $('digitInputRow').hidden = true;
+    $('digitStartRow').hidden = false;
+    $('digitShow').textContent = '准备好了吗';
+    $('digitHint').textContent = '';
+    $('digitTimer').textContent = '20.0s';
+    $('digitTrack').style.width = '0%';
+    $('digitProgress').textContent = '第 3 位 · 第 1 题';
+    $('digitShow').style.color = '';
+  }
+  function startDigit(){
+    digit.level = 3; digit.trial = 0; digit.correctAtLevel = 0; digit.maxSpan = 0;
+    $('digitStartRow').hidden = true; $('digitResult').hidden = true;
+    nextDigitTrial();
+  }
+  function nextDigitTrial(){
+    $('digitInputRow').hidden = true;
+    digit.phase = 'show';
+    digit.seq = [];
+    var first = 1 + Math.floor(Math.random() * 8);
+    digit.seq.push(first);
+    for(var i = 1; i < digit.level; i++){
+      var d = Math.floor(Math.random() * 10);
+      digit.seq.push(d);
+    }
+    $('digitProgress').textContent = '第 ' + digit.level + ' 位 · 第 ' + (digit.trial + 1) + ' 题';
+    $('digitHint').textContent = '看好，一位一位出现';
+    var i2 = 0;
+    function tick(){
+      if(i2 >= digit.seq.length){
+        $('digitShow').textContent = '倒着输入';
+        $('digitHint').textContent = '例：出现 1 2 3，就输入 3 2 1';
+        $('digitInputRow').hidden = false;
+        $('digitInput').value = '';
+        $('digitInput').focus();
+        digit.phase = 'answer';
+        digit.deadline = Date.now() + 20000;
+        window._digitT = setInterval(tickTimerDigit, 100);
+        return;
+      }
+      $('digitShow').textContent = String(digit.seq[i2]);
+      i2++;
+      setTimeout(function(){
+        $('digitShow').textContent = '·';
+        setTimeout(tick, 180);
+      }, 750);
+    }
+    tick();
+  }
+  function tickTimerDigit(){
+    var left = Math.max(0, (digit.deadline - Date.now()) / 1000);
+    $('digitTimer').textContent = left.toFixed(1) + 's';
+    $('digitTrack').style.width = (left / 20 * 100) + '%';
+    if(left <= 0){ submitDigit(true); }
+  }
+  function submitDigit(timeout){
+    if(digit.phase !== 'answer') return;
+    if(window._digitT){ clearInterval(window._digitT); window._digitT = null; }
+    digit.phase = 'idle';
+    var answer = ($('digitInput').value || '').replace(/\D/g, '');
+    var expect = digit.seq.slice().reverse().join('');
+    var ok = !timeout && answer === expect;
+    $('digitShow').textContent = ok ? '对' : '错';
+    $('digitShow').style.color = ok ? '#4f7a52' : '#a8433a';
+    $('digitHint').textContent = timeout ? '超时了' : (ok ? '不错' : '正确答案是 ' + expect);
+    if(ok) digit.correctAtLevel++;
+    digit.trial++;
+    $('digitInputRow').hidden = true;
+    setTimeout(function(){
+      $('digitShow').style.color = '';
+      if(digit.trial >= 2){
+        if(digit.correctAtLevel >= 1){
+          digit.maxSpan = Math.max(digit.maxSpan, digit.level);
+          digit.level++;
+          digit.trial = 0; digit.correctAtLevel = 0;
+          if(digit.level > 9){ finishDigit(); return; }
+          $('digitHint').textContent = '升级到 ' + digit.level + ' 位';
+          setTimeout(nextDigitTrial, 700);
+        } else {
+          finishDigit();
+        }
+      } else {
+        nextDigitTrial();
+      }
+    }, 900);
+  }
+  function finishDigit(){
+    var span = digit.maxSpan || 2;
+    var score = Math.max(0, Math.min(100, Math.round((span - 2) / 6 * 100)));
+    results.digit = { score: score, span: span, at: Date.now() };
+    saveResults();
+    resultCard($('digitResult'), '数字倒背', score,
+      '最长倒背：<b>' + span + ' 位</b>。倒背比顺背更吃工作记忆，因为它要求一边存、一边倒过来操作。',
+      '得分 = (最长正确位数 − 2) ÷ 6 × 100，下限 0，上限 100。2 位 → 0 分，8 位 → 100 分。');
+    $('digitStartRow').hidden = false;
+  }
+  $('digitStart').addEventListener('click', startDigit);
+  $('digitSubmit').addEventListener('click', function(){ submitDigit(false); });
+  $('digitInput').addEventListener('keydown', function(e){ if(e.key === 'Enter') submitDigit(false); });
+
+  /* ================= STROOP ================= */
+  var COLORS = { red:'#c0553d', green:'#4f7a52', blue:'#3f6a8a', yellow:'#c99a2e' };
+  var NAMES = { red:'红', green:'绿', blue:'蓝', yellow:'黄' };
+  var stroop = { i: 0, total: 24, correct: 0, wrong: 0, rts: [], phase: 'idle', deadline: 0, startAt: 0, target: null, t0: 0, lock: false };
+
+  function resetStroop(){
+    stopAll();
+    stroop = { i: 0, total: 24, correct: 0, wrong: 0, rts: [], phase: 'idle', deadline: 0, startAt: 0, target: null, t0: 0, lock: false };
+    $('stroopResult').hidden = true;
+    $('stroopOpts').hidden = true;
+    $('stroopStartRow').hidden = false;
+    $('stroopWord').textContent = '红';
+    $('stroopWord').style.color = COLORS.red;
+    $('stroopHint').textContent = '准备好就开始';
+    $('stroopTimer').textContent = '60.0s';
+    $('stroopProgress').textContent = '0 / 24';
+    $('stroopTrack').style.width = '0%';
+  }
+  function startStroop(){
+    stroop.i = 0; stroop.correct = 0; stroop.wrong = 0; stroop.rts = [];
+    stroop.phase = 'run';
+    stroop.deadline = Date.now() + 60000;
+    $('stroopStartRow').hidden = true;
+    $('stroopResult').hidden = true;
+    $('stroopOpts').hidden = false;
+    $('stroopHint').textContent = '说出墨的颜色';
+    window._stroopT = setInterval(tickStroopTimer, 100);
+    nextStroop();
+  }
+  function nextStroop(){
+    if(stroop.i >= stroop.total || Date.now() > stroop.deadline){ finishStroop(); return; }
+    var keys = Object.keys(COLORS);
+    var ink = keys[Math.floor(Math.random() * 4)];
+    var word = keys[Math.floor(Math.random() * 4)];
+    if(word === ink) word = keys[(keys.indexOf(ink) + 1) % 4]; // 保证不一致
+    stroop.target = ink;
+    var w = $('stroopWord');
+    w.textContent = NAMES[word];
+    w.style.color = COLORS[ink];
+    stroop.t0 = Date.now();
+    stroop.lock = false;
+    $('stroopProgress').textContent = stroop.i + ' / ' + stroop.total;
+  }
+  function answerStroop(color){
+    if(stroop.phase !== 'run' || stroop.lock) return;
+    stroop.lock = true;
+    var rt = Date.now() - stroop.t0;
+    var ok = color === stroop.target;
+    if(ok){ stroop.correct++; stroop.rts.push(rt); } else { stroop.wrong++; }
+    var st = $('stroopStage');
+    st.classList.add(ok ? 'flash-ok' : 'flash-bad');
+    $('stroopHint').textContent = ok ? '对' : ('错了，墨色是 ' + NAMES[stroop.target]);
+    setTimeout(function(){
+      st.classList.remove('flash-ok','flash-bad');
+      stroop.i++;
+      nextStroop();
+    }, 260);
+  }
+  function tickStroopTimer(){
+    var left = Math.max(0, (stroop.deadline - Date.now()) / 1000);
+    if(!stroop.lock) $('stroopTimer').textContent = left.toFixed(1) + 's';
+    $('stroopTrack').style.width = (left / 60 * 100) + '%';
+    if(left <= 0 && stroop.phase === 'run'){ finishStroop(); }
+  }
+  function finishStroop(){
+    if(stroop.phase !== 'run') return;
+    stroop.phase = 'done';
+    if(window._stroopT){ clearInterval(window._stroopT); window._stroopT = null; }
+    var answered = stroop.correct + stroop.wrong;
+    if(answered < 24){
+      // 超时：未答的按错算一半
+    }
+    var acc = stroop.total > 0 ? (stroop.correct - stroop.wrong * 0.5) / stroop.total : 0;
+    var score = Math.max(0, Math.min(100, Math.round(acc * 100)));
+    var med = 0;
+    if(stroop.rts.length){
+      var sorted = stroop.rts.slice().sort(function(a,b){ return a-b; });
+      med = sorted[Math.floor(sorted.length / 2)];
+      if(med < 800) score = Math.min(100, score + 5);
+      else if(med > 1500) score = Math.max(0, score - 5);
+    }
+    results.stroop = { score: score, correct: stroop.correct, wrong: stroop.wrong, median: med, at: Date.now() };
+    saveResults();
+    $('stroopOpts').hidden = true;
+    resultCard($('stroopResult'), '念颜色', score,
+      '答对 <b>' + stroop.correct + '</b>，答错 <b>' + stroop.wrong + '</b>' +
+      (med ? ('，中位反应时 <b>' + med + ' ms</b>') : '') +
+      '。字义会干扰墨色判断，压住这个干扰就是抑制。',
+      '得分 = (答对 − 答错 × 0.5) ÷ 24 × 100；中位反应时 &lt; 800ms 加 5 分、&gt; 1500ms 减 5 分。');
+    $('stroopStartRow').hidden = false;
+  }
+  $('stroopStart').addEventListener('click', startStroop);
+  $('stroopOpts').addEventListener('click', function(e){
+    var b = e.target.closest('.opt');
+    if(b) answerStroop(b.getAttribute('data-color'));
+  });
+
+  /* ================= MATRIX ================= */
+  function svgWrap(inner){
+    return '<svg viewBox="0 0 100 100" width="92" height="92">' + inner + '</svg>';
+  }
+  function shape(kind, color, size, rot){
+    size = size || 20;
+    var c = color || '#2b3138';
+    var s = size;
+    if(kind === 'circle') return '<circle cx="50" cy="50" r="' + s + '" fill="' + c + '"/>';
+    if(kind === 'square') return '<rect x="' + (50-s) + '" y="' + (50-s) + '" width="' + (2*s) + '" height="' + (2*s) + '" fill="' + c + '"/>';
+    if(kind === 'triangle') return '<polygon points="50,' + (50-s) + ' ' + (50+s) + ',' + (50+s) + ' ' + (50-s) + ',' + (50+s) + '" fill="' + c + '"/>';
+    if(kind === 'arrow') return '<g transform="rotate(' + (rot||0) + ' 50 50)"><path d="M50 18 L70 44 L58 44 L58 78 L42 78 L42 44 L30 44 Z" fill="' + c + '"/></g>';
+    if(kind === 'dot') return '<circle cx="50" cy="50" r="' + s + '" fill="' + c + '"/>';
+    return '';
+  }
+  function cell(inner){ return '<span style="display:inline-block;border:1px solid #d8cfc0;margin:3px;background:#fff">' + svgWrap(inner) + '</span>'; }
+
+  function makeItems(){
+    var items = [];
+    // 1 数量递增
+    var dots = function(n){ var s=''; var pos=[[30,30],[70,30],[30,70],[70,70],[50,50]];
+      for(var i=0;i<n;i++){ s += '<circle cx="'+pos[i][0]+'" cy="'+pos[i][1]+'" r="9" fill="#3f6a8a"/>'; } return s; };
+    items.push({ prompt: [dots(1),dots(2),dots(3)], options: [dots(2),dots(3),dots(4),dots(5)], answer: 2,
+      why: '点的数量每次加一，所以第四格是 4 个点。' });
+    // 2 旋转
+    items.push({ prompt: [shape('arrow','#2b3138',24,0), shape('arrow','#2b3138',24,90), shape('arrow','#2b3138',24,180)],
+      options: [shape('arrow','#2b3138',24,0), shape('arrow','#2b3138',24,90), shape('arrow','#2b3138',24,270), shape('arrow','#2b3138',24,180)],
+      answer: 2, why: '箭头每次顺时针转 90°，所以第四格朝左（270°）。' });
+    // 3 形状交替 + 填色交替
+    items.push({ prompt: [shape('circle','#2b3138',22), shape('square','#c9b79c',22), shape('circle','#2b3138',22)],
+      options: [shape('circle','#2b3138',22), shape('square','#c9b79c',22), shape('square','#2b3138',22), shape('circle','#c9b79c',22)],
+      answer: 1, why: '圆（实）、方（浅）、圆（实），下一个是方（浅）。' });
+    // 4 大小递增
+    items.push({ prompt: [shape('triangle','#4f7a52',14), shape('triangle','#4f7a52',22), shape('triangle','#4f7a52',30)],
+      options: [shape('triangle','#4f7a52',22), shape('triangle','#4f7a52',30), shape('triangle','#4f7a52',38), shape('triangle','#4f7a52',14)],
+      answer: 2, why: '三角形每次变大一圈，第四格最大。' });
+    // 5 位置移动
+    var dotAt = function(x,y){ return '<circle cx="'+x+'" cy="'+y+'" r="9" fill="#a8433a"/>'; };
+    items.push({ prompt: [dotAt(28,28), dotAt(72,28), dotAt(72,72)],
+      options: [dotAt(28,72), dotAt(28,28), dotAt(72,28), dotAt(72,72)],
+      answer: 0, why: '点在四角顺时针走：左上、右上、右下，下一个是左下。' });
+    return items;
+  }
+  var matrix = { items: [], i: 0, correct: 0, phase: 'idle', deadline: 0, lock: false };
+  function resetMatrix(){
+    stopAll();
+    matrix = { items: makeItems(), i: 0, correct: 0, phase: 'idle', deadline: 0, lock: false };
+    $('matrixResult').hidden = true;
+    $('matrixOpts').hidden = true;
+    $('matrixStartRow').hidden = false;
+    $('matrixPrompt').innerHTML = '';
+    $('matrixHint').textContent = '';
+    $('matrixTimer').textContent = '90.0s';
+    $('matrixProgress').textContent = '0 / 5';
+    $('matrixTrack').style.width = '0%';
+  }
+  function startMatrix(){
+    matrix.i = 0; matrix.correct = 0; matrix.phase = 'run';
+    matrix.deadline = Date.now() + 90000;
+    $('matrixStartRow').hidden = true;
+    $('matrixResult').hidden = true;
+    window._matrixT = setInterval(tickMatrixTimer, 100);
+    showMatrixItem();
+  }
+  function showMatrixItem(){
+    var it = matrix.items[matrix.i];
+    if(!it){ finishMatrix(); return; }
+    matrix.lock = false;
+    $('matrixProgress').textContent = matrix.i + ' / 5';
+    $('matrixHint').textContent = '选第四格';
+    var html = '<div>';
+    it.prompt.forEach(function(p){ html += cell(p); });
+    html += cell('<text x="50" y="60" text-anchor="middle" font-size="34" fill="#a8433a">?</text>');
+    html += '</div><div style="font-size:12px;color:#6b7480;margin:8px 0">选一个放进第四格</div>';
+    $('matrixPrompt').innerHTML = html;
+    var opts = '<div class="opts" style="grid-template-columns:1fr 1fr 1fr 1fr">';
+    it.options.forEach(function(o, idx){
+      opts += '<button class="opt" data-i="' + idx + '"><kbd>' + (idx+1) + '</kbd>' + svgWrap(o) + '</button>';
+    });
+    opts += '</div>';
+    var wrap = $('matrixOpts');
+    wrap.innerHTML = opts;
+    wrap.hidden = false;
+    wrap.querySelectorAll('.opt').forEach(function(b){
+      b.addEventListener('click', function(){ answerMatrix(Number(b.getAttribute('data-i'))); });
+    });
+  }
+  function answerMatrix(idx){
+    if(matrix.phase !== 'run' || matrix.lock) return;
+    matrix.lock = true;
+    var it = matrix.items[matrix.i];
+    var ok = idx === it.answer;
+    if(ok) matrix.correct++;
+    $('matrixHint').textContent = (ok ? '对。' : '不对。') + it.why;
+    var st = $('matrixStage');
+    st.classList.add(ok ? 'flash-ok' : 'flash-bad');
+    setTimeout(function(){
+      st.classList.remove('flash-ok','flash-bad');
+      matrix.i++;
+      if(matrix.i >= 5){ finishMatrix(); } else { showMatrixItem(); }
+    }, 900);
+  }
+  function tickMatrixTimer(){
+    var left = Math.max(0, (matrix.deadline - Date.now()) / 1000);
+    $('matrixTimer').textContent = left.toFixed(1) + 's';
+    $('matrixTrack').style.width = (left / 90 * 100) + '%';
+    if(left <= 0 && matrix.phase === 'run'){ finishMatrix(); }
+  }
+  function finishMatrix(){
+    if(matrix.phase !== 'run') return;
+    matrix.phase = 'done';
+    if(window._matrixT){ clearInterval(window._matrixT); window._matrixT = null; }
+    var score = matrix.correct * 20;
+    results.matrix = { score: score, correct: matrix.correct, at: Date.now() };
+    saveResults();
+    $('matrixOpts').hidden = true;
+    resultCard($('matrixResult'), '矩阵推理', score,
+      '五题答对 <b>' + matrix.correct + '</b> 题。图形规律测的是流体推理，也就是在新问题里找关系的能力。',
+      '得分 = 答对题数 × 20。');
+    $('matrixStartRow').hidden = false;
+  }
+  $('matrixStart').addEventListener('click', startMatrix);
+
+  /* ---------- keyboard ---------- */
+  document.addEventListener('keydown', function(e){
+    if(current === 'stroop' && stroop.phase === 'run'){
+      var map = { '1':'red','r':'red','2':'green','g':'green','3':'blue','b':'blue','4':'yellow','y':'yellow' };
+      var k = String(e.key).toLowerCase();
+      if(map[k]){ e.preventDefault(); answerStroop(map[k]); }
+    }
+    if(current === 'matrix' && matrix.phase === 'run'){
+      if(['1','2','3','4'].indexOf(e.key) >= 0){ e.preventDefault(); answerMatrix(Number(e.key) - 1); }
+    }
+  });
+
+  /* ================= SIMULATOR ================= */
+  var sim = { ab: 40, ach: 40, year: 0, hist: [], pendingDecay: 0 };
+  function resetSim(){
+    sim = { ab: 40, ach: 40, year: 0, hist: [], pendingDecay: 0 };
+    sim.hist.push({ ab: 40, ach: 40 });
+    $('yearLabel').textContent = '第 0 年';
+    $('simnote').textContent = '点「下一年」开始推演。';
+    drawChart();
+  }
+  function b1(){ return Number($('b1').value); }
+  function b2(){ return Number($('b2').value); }
+  function advance(extraAb, extraAch, note){
+    // 年增长：能力被成绩拉动，成绩被能力拉动；基数每��小幅自然增长
+    var nextAb = sim.ab + 0.6 + b2() * (sim.ach - 40) / 8 + (extraAb || 0);
+    var nextAch = sim.ach + 0.6 + b1() * (sim.ab - 40) / 8 + (extraAch || 0);
+    // 训练效果的衰减：下一年还回去一半
+    if(sim.pendingDecay){
+      nextAb -= sim.pendingDecay;
+      sim.pendingDecay = 0;
+    }
+    sim.ab = Math.max(0, Math.min(100, nextAb));
+    sim.ach = Math.max(0, Math.min(100, nextAch));
+    sim.year++;
+    sim.hist.push({ ab: sim.ab, ach: sim.ach });
+    $('yearLabel').textContent = '第 ' + sim.year + ' 年';
+    if(note) $('simnote').textContent = note;
+    drawChart();
+  }
+  function drawChart(){
+    var svg = $('chart');
+    var W = 620, H = 280, padL = 40, padB = 30, padT = 16, padR = 12;
+    var n = Math.max(5, sim.hist.length - 1);
+    var stepX = (W - padL - padR) / n;
+    var yOf = function(v){ return padT + (1 - v / 100) * (H - padT - padB); };
+    var xOf = function(i){ return padL + i * stepX; };
+    var out = '';
+    // grid
+    for(var g = 0; g <= 4; g++){
+      var v = g * 25;
+      out += '<line x1="'+padL+'" y1="'+yOf(v)+'" x2="'+(W-padR)+'" y2="'+yOf(v)+'" stroke="#eee7da"/>';
+      out += '<text x="'+(padL-8)+'" y="'+(yOf(v)+4)+'" text-anchor="end" font-size="10" fill="#a99f90">'+v+'</text>';
+    }
+    for(var i = 0; i < sim.hist.length; i++){
+      out += '<text x="'+xOf(i)+'" y="'+(H-8)+'" text-anchor="middle" font-size="10" fill="#a99f90">'+i+'</text>';
+    }
+    function line(key, color){
+      var pts = sim.hist.map(function(p, i){ return xOf(i) + ',' + yOf(p[key]); }).join(' ');
+      return '<polyline points="'+pts+'" fill="none" stroke="'+color+'" stroke-width="3" stroke-linecap="round"/>';
+    }
+    out += line('ab', '#4f7a52');
+    out += line('ach', '#b98a5a');
+    var last = sim.hist[sim.hist.length - 1];
+    out += '<circle cx="'+xOf(sim.hist.length-1)+'" cy="'+yOf(last.ab)+'" r="4" fill="#4f7a52"/>';
+    out += '<circle cx="'+xOf(sim.hist.length-1)+'" cy="'+yOf(last.ach)+'" r="4" fill="#b98a5a"/>';
+    svg.innerHTML = out;
+  }
+  $('step').addEventListener('click', function(){ advance(0, 0, '只推一年：两条线按现在的互相拉动往前走。'); });
+  $('train').addEventListener('click', function(){
+    // 训练能力：能力 +10，成绩只得到 0.15 × 拉动 的迁移；次年起衰减一半
+    sim.ab = Math.min(100, sim.ab + 10);
+    sim.pendingDecay = 5;
+    var transfer = 0.15 * b1() * 10 / 8;
+    advance(0, transfer, '训练能力：能力跳了 10 分，成绩只挪了一点点；第二年多出来的能力还会掉一半。');
+  });
+  $('teach').addEventListener('click', function(){
+    advance(0, 8, '改教学：成绩当年涨 8 分；因为学习会反过来长能力，能力后面几年慢慢跟上。');
+  });
+  $('reset').addEventListener('click', resetSim);
+  $('b1').addEventListener('input', function(){ $('b1v').textContent = Number($('b1').value).toFixed(2); });
+  $('b2').addEventListener('input', function(){ $('b2v').textContent = Number($('b2').value).toFixed(2); });
+
+  /* ---------- init ---------- */
+  loadResults();
+  resetSim();
+  resetDigit();
+  resetStroop();
+  resetMatrix();
+  go('home');
+})();
+</script>
+</body>
+</html>
